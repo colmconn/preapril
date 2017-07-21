@@ -31,3 +31,4 @@ rm.*
 ## backup files
 *~
 
+afni-ppi-example/
