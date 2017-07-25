@@ -59,7 +59,7 @@ if [[ ${do_baseline_only_regressions} -eq 1 ]] ; then
 	    
 	    ./09-cluster-grief-regressions.sh -p 0.01 -c 0.05 -n 1 -s 2  -d ../Group.data/ -r ../Group.results/Grief/baseline.regressions/ \
 					      -x cc  -g ${glt} -e ${variable} -i ${glt}.baseline.analysis.one.${variable}
-	    exit
+
 	    ./09-cluster-grief-regressions.sh -p 0.01 -c 0.05 -n 1 -s 2  -d ../Group.data/ -r ../Group.results/Grief/baseline.regressions/ \
 					      -x cc  -g ${glt} -e ${variable} -i ${glt}.baseline.analysis.two.${variable}.and.hamd
 	    
