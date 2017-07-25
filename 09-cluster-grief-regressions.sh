@@ -243,7 +243,7 @@ statBrikId=$( 3dinfo -label2index "${regressionVariable}.t.value" $rlmBucketFile
 ## now we need to estimate the average smoothing of the data to feed to 3dClustSim
 
 # first up get the list of subjects in the analysis
-if [[ ! -f $GROUP_RESULTS/blur.err_reml.1D ]] ; then 
+if [[ ! -f $GROUP_RESULTS/blur.err_reml.1D ]] || [[ ! -s $GROUP_RESULTS/blur.err_reml.1D ]] ; then 
     cat /dev/null > $GROUP_RESULTS/blur.err_reml.1D
     subjects=$( cat ${dataTableFilename} | awk '{ print $1 }' | sed 1d )
 
@@ -271,11 +271,15 @@ done
 echo "*** Average ACF values = ${avgAcf[@]}"
 
 ## now we need to run 3dClustSim
-if [[ ! -f $GROUP_RESULTS/${csimprefix}.${infix}.NN${NN}_${side}sided.1D ]] ; then 
-    3dClustSim -nodec -LOTS -acf ${avgAcf[0]} ${avgAcf[1]} ${avgAcf[2]} -prefix ${csimprefix}.${infix} -mask final_mask+tlrc.HEAD
+## if [[ ! -f $GROUP_RESULTS/${csimprefix}.${infix}.NN${NN}_${side}sided.1D ]] ; then
+if [[ ! -f $GROUP_RESULTS/${csimprefix}.NN${NN}_${side}sided.1D ]] ; then     
+    ## 3dClustSim -nodec -LOTS -acf ${avgAcf[0]} ${avgAcf[1]} ${avgAcf[2]} -prefix ${csimprefix}.${infix} -mask final_mask+tlrc.HEAD
+    ## same subjects in all regressions so we onlyneed to run this once not once per regression
+    3dClustSim -nodec -LOTS -acf ${avgAcf[0]} ${avgAcf[1]} ${avgAcf[2]} -prefix ${csimprefix} -mask final_mask+tlrc.HEAD    
 fi
 
-nVoxels=$( $SCRIPTS_DIR/get.minimum.voxel.count.r --nn $NN --alpha=$cPvalue --pthr=$pValue --side=$side --csimfile=$GROUP_RESULTS/${csimprefix}.${infix}.NN${NN}_${side}sided.1D )
+## nVoxels=$( $SCRIPTS_DIR/get.minimum.voxel.count.r --nn $NN --alpha=$cPvalue --pthr=$pValue --side=$side --csimfile=$GROUP_RESULTS/${csimprefix}.${infix}.NN${NN}_${side}sided.1D )
+nVoxels=$( $SCRIPTS_DIR/get.minimum.voxel.count.r --nn $NN --alpha=$cPvalue --pthr=$pValue --side=$side --csimfile=$GROUP_RESULTS/${csimprefix}.NN${NN}_${side}sided.1D )
 if [[ "x$nVoxels" == "x" ]] ; then
     echo "*** Couldn't get the correct number of voxels to go with pvalue=$pValue and corrected pvalue=$cPvalue"
     echo "*** You may need to pad these values with zeros to ensure you match the correct row and column in $cstempPrefix.NN${NN}_${side}.1D"
@@ -334,4 +338,4 @@ cd $SCRIPTS_DIR
 ##./cluster2Table.pl --space=mni --force -mi $GROUP_RESULTS
 
 echo "*** Making cluster location tables using Center of Mass"
-./cluster2Table.pl --space=mni --force $GROUP_RESULTS
+./cluster2Table.pl --space=mni $GROUP_RESULTS
