@@ -53,7 +53,8 @@ scripts.dir=getwd()
 ## creation of a data frame for with all clinical measures
 ## clinical.measures=read.csv("../FOSI_widedata_rr_grief_depression_subset.csv", header=TRUE)
 ## clinical.measures=read.csv("../FOSI_widedata_rr_dirty17.csv", header=TRUE) 
-clinical.measures=read.csv("../FOSI_outcomes_array_rr_base_all.csv", header=TRUE)
+followup.clinical.measures=read.csv("../FOSI_widedata_rr_grief_depression_subset.csv", header=TRUE)
+baseline.clinical.measures=read.csv("../FOSI_outcomes_array_rr_base_all.csv",          header=TRUE)
 
 ## list all of the subjects directories
 subject.list=dir("../", pattern="CMIT_[0-9a-zA-Z]{3}$")
@@ -67,37 +68,7 @@ subjects.df=data.frame("subject"=subject.list, "ID"=substring(subject.list, 1, n
 subjects.df=subjects.df[order(subjects.df$ID, subjects.df$timepoint), ]
 ## print(subjects.df)
 
-## now bind the data frame just created above with all of teh data
-## from the clinical measures data frame
-## 
-## match looks up its first argument in its second argument and
-## returns the index from the second argument where the first argument
-## is found (NA if not found)
-subjects.df=cbind(subjects.df,
-                  clinical.measures[match(subjects.df$ID, clinical.measures$ID), colnames(clinical.measures)[-c(1:2)]])
-## print(subjects.df)
-
-## print(subjects.df)
-## stop()
-## now we need to calculate some scaled (by baseline score) versions of the delta variables
-subjects.df$ham_total_delta_scaled = subjects.df$ham_total_delta_t1t0 / subjects.df$ham_total.0
-subjects.df$mm_delta_scaled        = subjects.df$mm_delta_t1t0        / subjects.df$mm.0
-subjects.df$mm_a_delta_scaled      = subjects.df$mm_a_delta_t1t0      / subjects.df$mm_a.0
-subjects.df$mm_b_delta_scaled      = subjects.df$mm_b_delta_t1t0      / subjects.df$mm_b.0
-subjects.df$mm_c_delta_scaled      = subjects.df$mm_c_delta_t1t0      / subjects.df$mm_c.0
-
-
-## now for each GLT of interest we need to add a column to the
-## subjects data frame with the HEAD filename. This will facilitate
-## the creation of difference files later
-
 parent.directory=dirname(getwd())
-subjects.df$stats.file=file.path(parent.directory, subjects.df$subject, "afniGriefPreprocessed.NL", paste("stats.", subjects.df$subject, "_REML+tlrc.HEAD", sep=""))
-subjects.df$stats.file.exists=file.exists(subjects.df$stats.file)
-subjects.df=droplevels(subjects.df)
-## print(subjects.df)
-
-
 group.data.dir=file.path(parent.directory, "Group.data")
 if ( ! dir.exists(group.data.dir)) {
     cat("*** Creating group data dir\n")
@@ -108,6 +79,7 @@ if ( ! dir.exists(group.data.dir)) {
 thread.count=10
 cat("*** Thread count set to", thread.count, "\n")
 
+debug=FALSE
 
 ### These two variables control which set of regressions are to have
 ### files created
@@ -118,7 +90,35 @@ do.baseline.only.regressions=TRUE
 ### CHANGE FROM BASELINE TO FOLLOW-UP REGRESSIONS
 ####################################################################################################
 if (do.baseline.to.followup.change.regressions ) {
+    ## now bind the data frame just created above with all of teh data
+    ## from the clinical measures data frame
+    ## 
+    ## match looks up its first argument in its second argument and
+    ## returns the index from the second argument where the first argument
+    ## is found (NA if not found)
+    subjects.df=cbind(subjects.df,
+                      followup.clinical.measures[match(subjects.df$ID, followup.clinical.measures$ID), colnames(followup.clinical.measures)[-c(1:2)]])
+    ## print(subjects.df)
 
+    ## print(subjects.df)
+    ## stop()
+    ## now we need to calculate some scaled (by baseline score) versions of the delta variables
+    subjects.df$ham_total_delta_scaled = subjects.df$ham_total_delta_t1t0 / subjects.df$ham_total.0
+    subjects.df$mm_delta_scaled        = subjects.df$mm_delta_t1t0        / subjects.df$mm.0
+    subjects.df$mm_a_delta_scaled      = subjects.df$mm_a_delta_t1t0      / subjects.df$mm_a.0
+    subjects.df$mm_b_delta_scaled      = subjects.df$mm_b_delta_t1t0      / subjects.df$mm_b.0
+    subjects.df$mm_c_delta_scaled      = subjects.df$mm_c_delta_t1t0      / subjects.df$mm_c.0
+
+
+    ## now for each GLT of interest we need to add a column to the
+    ## subjects data frame with the HEAD filename. This will facilitate
+    ## the creation of difference files later
+
+    subjects.df$stats.file=file.path(parent.directory, subjects.df$subject, "afniGriefPreprocessed.NL", paste("stats.", subjects.df$subject, "_REML+tlrc.HEAD", sep=""))
+    subjects.df$stats.file.exists=file.exists(subjects.df$stats.file)
+    subjects.df=droplevels(subjects.df)
+    ## print(subjects.df)
+    
     if ( ! isTRUE(all(subjects.df$stats.file.exists)) ) {
         stop("Some of the stats files do not exist. Cannot continue\n")
     }
@@ -174,15 +174,19 @@ if (do.baseline.to.followup.change.regressions ) {
                               "delta.hamd.scaled"    = subjects.df[rids, "ham_total_delta_scaled"],
                               "age"                  = subjects.df[rids, "Age.0"],
                               "InputFile"            = unlist(input.files))
-
-        ## cat("*** Before complete cases\n")
-        ## print(data.table)
+        if (debug) {
+            cat("*** Before complete cases\n")
+            print(data.table)
+        }
         ## drop rows with missing data
         data.table=data.table[complete.cases(data.table), ]
-
-        ## cat("*** After complete cases\n")
-        ## print(data.table)
-        ## stop()
+            
+        if (debug) {
+            cat("*** After complete cases\n")
+            print(data.table)
+            stop()
+        }
+        
         if ( ! file.exists( mask.filename) ) {
             stop(paste("Mask file", mask.filename, "does not exist. Cannot continue until this is fixed!\n"))
         }
@@ -218,7 +222,25 @@ if (do.baseline.to.followup.change.regressions ) {
 ### BASELINE REGRESSIONS
 ####################################################################################################
 if (do.baseline.only.regressions ) {
+    ## now bind the data frame just created above with all of teh data
+    ## from the clinical measures data frame
+    ## 
+    ## match looks up its first argument in its second argument and
+    ## returns the index from the second argument where the first argument
+    ## is found (NA if not found)
+    subjects.df=cbind(subjects.df,
+                      baseline.clinical.measures[match(subjects.df$ID, baseline.clinical.measures$ID), colnames(baseline.clinical.measures)[-c(1:2)]])
+    ## print(subjects.df)
 
+    ## now for each GLT of interest we need to add a column to the
+    ## subjects data frame with the HEAD filename. This will facilitate
+    ## the creation of difference files later
+
+    subjects.df$stats.file=file.path(parent.directory, subjects.df$subject, "afniGriefPreprocessed.NL", paste("stats.", subjects.df$subject, "_REML+tlrc.HEAD", sep=""))
+    subjects.df$stats.file.exists=file.exists(subjects.df$stats.file)
+    subjects.df=droplevels(subjects.df)
+    ## print(subjects.df)
+    
     subjects.df=subjects.df[order(subjects.df$ID, subjects.df$timepoint), ]
     rownames(subjects.df)=NULL
     group.results.dir=normalizePath(file.path("..", "Group.results", "Grief", "baseline.regressions"))
@@ -237,20 +259,32 @@ if (do.baseline.only.regressions ) {
         ## setup the data tbale with all columns needed for the various sub-analyses
         data.table=data.frame("Subj"                 = subjects.df[rids, "ID"],
                               "subject"              = subjects.df[rids, "subject"],
-                              "grief"                = subjects.df[rids, "mm.0"],
-                              "hamd"                 = subjects.df[rids, "ham_total.0"],
-                              "age"                  = subjects.df[rids, "Age.0"],
-                              "stats.file"           = subjects.df[rids, "stats.file"])
-        
-        cat("*** Before complete cases\n")
-        print(data.table)
+                              "grief"                = subjects.df[rids, "mm"],
+                              "grief.a"              = subjects.df[rids, "mm_a"],
+                              "grief.b"              = subjects.df[rids, "mm_b"],
+                              "grief.c"              = subjects.df[rids, "mm_c"],
+                              "iri_pt"               = subjects.df[rids, "iri_pt"],
+                              "iri_ec"               = subjects.df[rids, "iri_ec"],                              
+                              "hamd"                 = subjects.df[rids, "ham_total"],
+                              "age"                  = subjects.df[rids, "Age"],
+                              "stats.file"           = subjects.df[rids, "stats.file"],
+                              "stats.file.exists"    = subjects.df[rids, "stats.file.exists"])
+        data.table=subset(data.table, stats.file.exists==TRUE)
+
+        if (debug) {
+            cat("*** Before complete cases\n")
+            print(data.table)
+        }
         ## drop rows with missing data
         data.table=data.table[complete.cases(data.table$grief), ]
 
-        cat("*** After complete cases\n")
-        rownames(data.table)=NULL
-        print(data.table)
-        stop()
+        if (debug) {
+            cat("*** After complete cases\n")
+            rownames(data.table)=NULL
+            print(data.table)
+            stop()
+        }
+        
         input.files=list()
         for ( ii in seq.int(1, dim(data.table)[1]) ) {
             ## subjects.df$stats.file=file.path(parent.directory, subjects.df$subject, "afniGriefPreprocessed.NL", paste("stats.", subjects.df$subject, "_REML+tlrc.HEAD", sep=""))
@@ -273,7 +307,7 @@ if (do.baseline.only.regressions ) {
         ## be driving the regression results in the whole sample. So
         ## this like is added to facilitate its removal so that the
         ## regressions can be run without this subject
-        ## subset(data.table, ! Subj %in% c("CMIT_04"))
+        data.table=subset(data.table, ! Subj %in% c("CMIT_04"))
         
         ## stop()
         
@@ -281,27 +315,29 @@ if (do.baseline.only.regressions ) {
             stop("Some of the InputFiles files do not exist. Cannot continue\n")
         }
 
+
+        for (variable in c("grief", "grief.a", "grief.b", "grief.c", "iri_pt", "iri_ec")) {
 ### ANALYSIS 1
-        infix=paste(glt, "baseline.analysis.one.grief", sep=".")
-        regression.formula="mri ~ grief"
-        data.table.filename=file.path(group.data.dir, paste("dataTable", infix, "tab", sep="."))
-        
-        make.data.table.and.regression.script(infix, regression.formula, data.table.filename, c("grief"), mask.filename)
+            infix=paste(glt, "baseline.analysis.one", variable, sep=".")
+            regression.formula=sprintf("mri ~ %s", variable)
+            data.table.filename=file.path(group.data.dir, paste("dataTable", infix, "tab", sep="."))
+            
+            make.data.table.and.regression.script(infix, regression.formula, data.table.filename, variable, mask.filename)
 
 ### ANALYSIS 2
-        infix=paste(glt, "baseline.analysis.two.grief.and.hamd", sep=".")
-        regression.formula="mri ~ grief + hamd"
-        data.table.filename=file.path(group.data.dir, paste("dataTable", infix, "tab", sep="."))
-        
-        make.data.table.and.regression.script(infix, regression.formula, data.table.filename, c("grief", "hamd"), mask.filename)
-        
+            infix=paste(glt, "baseline.analysis.two", variable, "and.hamd", sep=".")
+            regression.formula=sprintf("mri ~ %s + hamd", variable)
+            data.table.filename=file.path(group.data.dir, paste("dataTable", infix, "tab", sep="."))
+            
+            make.data.table.and.regression.script(infix, regression.formula, data.table.filename, c(variable, "hamd"), mask.filename)
+            
 ### ANALYSIS 3
-        infix=paste(glt, "baseline.analysis.three.grief.and.age", sep=".")
-        regression.formula="mri ~ grief + age"
-        data.table.filename=file.path(group.data.dir, paste("dataTable", infix, "tab", sep="."))
-        
-        make.data.table.and.regression.script(infix, regression.formula, data.table.filename, c("grief", "age"), mask.filename)    
-        
+            infix=paste(glt, "baseline.analysis.three", variable, "and.age", sep=".")
+            regression.formula=sprintf("mri ~ %s + age", variable)
+            data.table.filename=file.path(group.data.dir, paste("dataTable", infix, "tab", sep="."))
+            
+            make.data.table.and.regression.script(infix, regression.formula, data.table.filename, c(variable, "age"), mask.filename)    
+        }
     }
 
 }
