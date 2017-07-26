@@ -76,15 +76,15 @@ if ( ! dir.exists(group.data.dir)) {
 }
 
 ## the default number of threads to tell the robust regression script to use
-thread.count=10
+thread.count=1
 cat("*** Thread count set to", thread.count, "\n")
 
 debug=FALSE
 
 ### These two variables control which set of regressions are to have
 ### files created
-do.baseline.to.followup.change.regressions=FALSE
-do.baseline.only.regressions=TRUE
+do.baseline.to.followup.change.regressions=TRUE
+do.baseline.only.regressions=FALSE
 
 ####################################################################################################
 ### CHANGE FROM BASELINE TO FOLLOW-UP REGRESSIONS
@@ -119,16 +119,28 @@ if (do.baseline.to.followup.change.regressions ) {
     subjects.df=droplevels(subjects.df)
     ## print(subjects.df)
     
+    ## now keep only group 1
+    subjects.df=subset(subjects.df, Group == 1)
+
+    ## only keep subjects that are mentioned in the clinical measures
+    ## data frame sinc it's largely completely filtered to include the
+    ## correct subjects already
+    subjects.df=subjects.df[subjects.df$ID %in% followup.clinical.measures$ID, ]
+    
     if ( ! isTRUE(all(subjects.df$stats.file.exists)) ) {
         stop("Some of the stats files do not exist. Cannot continue\n")
     }
-
-    ## now keep only group 1
-    subjects.df=subset(subjects.df, Group == 1)
-    subjects.df=subjects.df[order(subjects.df$ID, subjects.df$timepoint), ]
+    
+    ## CMIT_04 has a baseline Grief (mm.0) score of 27 which may
+    ## be driving the regression results in the whole sample. So
+    ## this line is added to facilitate its removal so that the
+    ## regressions can be run without this subject
+    ## subjects.df=subset(subjects.df, ! ID %in% c("CMIT_04"))
+    
+    subjects.df=droplevels(subjects.df[order(subjects.df$ID, subjects.df$timepoint), ])
     rownames(subjects.df)=NULL
     
-    group.results.dir=normalizePath(file.path("..", "Group.results", "Grief", "regressions"))
+    group.results.dir=normalizePath(file.path("..", "Group.results", "Grief", "followup.regressions"))
     mask.filename=file.path(group.results.dir, "final_mask+tlrc.HEAD")
 
     for ( glt in c("relativeVsStanger", "relativeGriefVsRelativeNeutral", "relativeGriefVsStrangerGrief") ) {
@@ -154,7 +166,7 @@ if (do.baseline.to.followup.change.regressions ) {
             input.files[[length(input.files) + 1 ]] = file.path(group.data.dir, paste(difference.prefix, "+tlrc.HEAD", sep=""))
             
             if (! file.exists(file.path(group.data.dir, paste(difference.prefix, "+tlrc.HEAD", sep="")))) {
-                cat("*** Running: ", "\n")
+                cat(paste("***", subject,  "Running: ", "\n"))
                 cat(difference.creation.command, "\n")
                 system(difference.creation.command)
             } else {
@@ -170,7 +182,9 @@ if (do.baseline.to.followup.change.regressions ) {
         ## setup the data tbale with all columns needed for the various sub-analyses
         data.table=data.frame("Subj"                 = subjects.df[rids, "ID"],
                               "delta.grief.scaled"   = subjects.df[rids, "mm_delta_scaled"],
-                              "delta.grief.b.scaled" = subjects.df[rids, "mm_b_delta_scaled"],                          
+                              "delta.grief.a.scaled" = subjects.df[rids, "mm_a_delta_scaled"],
+                              "delta.grief.b.scaled" = subjects.df[rids, "mm_b_delta_scaled"],
+                              "delta.grief.c.scaled" = subjects.df[rids, "mm_c_delta_scaled"],                                                        
                               "delta.hamd.scaled"    = subjects.df[rids, "ham_total_delta_scaled"],
                               "age"                  = subjects.df[rids, "Age.0"],
                               "InputFile"            = unlist(input.files))
@@ -191,29 +205,30 @@ if (do.baseline.to.followup.change.regressions ) {
             stop(paste("Mask file", mask.filename, "does not exist. Cannot continue until this is fixed!\n"))
         }
 
-### ANALYSIS 1
-        infix=paste(glt, "analysis.one.delta.grief.scaled", sep=".")
-        regression.formula="mri ~ delta.grief.scaled"
-        data.table.filename=file.path(group.data.dir, paste("dataTable", infix, "tab", sep="."))
+        for (variable in c("delta.grief.scaled", "delta.grief.a.scaled", "delta.grief.b.scaled", "delta.grief.c.scaled")) {
         
-        make.data.table.and.regression.script(infix, regression.formula, data.table.filename, c("delta.grief.scaled"), mask.filename)
+### ANALYSIS 1
+            infix=paste(glt, "followup.analysis.one", variable, sep=".")
+            regression.formula=sprintf("mri ~ %s", variable)
+            data.table.filename=file.path(group.data.dir, paste("dataTable", infix, "tab", sep="."))
+            
+            make.data.table.and.regression.script(infix, regression.formula, data.table.filename, variable, mask.filename)
         
 ### ANALYSIS 2
-        infix=paste(glt, "analysis.two.delta.grief.scaled.and.grief.delta.hamd", sep=".")
-        regression.formula="mri ~ delta.grief.scaled + delta.hamd.scaled"
-        data.table.filename=file.path(group.data.dir, paste("dataTable", infix, "tab", sep="."))
-        
-        make.data.table.and.regression.script(infix, regression.formula, data.table.filename, c("delta.grief.scaled", "delta.hamd.scaled"), mask.filename)
-        
+            infix=paste(glt, "followup.analysis.two", variable, "and.delta.hamd.scaled", sep=".")
+            regression.formula=sprintf("mri ~ %s + delta.hamd.scaled", variable)
+            data.table.filename=file.path(group.data.dir, paste("dataTable", infix, "tab", sep="."))
+            
+            make.data.table.and.regression.script(infix, regression.formula, data.table.filename, c(variable, "delta.hamd.scaled"), mask.filename)
+            
 ### ANALYSIS 3
-        infix=paste(glt, "analysis.three.delta.grief.scaled.and.age", sep=".")
-        regression.formula="mri ~ delta.grief.scaled + age"
-        data.table.filename=file.path(group.data.dir, paste("dataTable", infix, "tab", sep="."))
-        
-        make.data.table.and.regression.script(infix, regression.formula, data.table.filename, c("delta.grief.scaled", "age"), mask.filename)
-        
-        ## stop()
-        
+            infix=paste(glt, "followup.analysis.three", variable, "and.age", sep=".")
+            regression.formula=sprintf("mri ~ %s + age", variable)
+            data.table.filename=file.path(group.data.dir, paste("dataTable", infix, "tab", sep="."))
+            
+            make.data.table.and.regression.script(infix, regression.formula, data.table.filename, c(variable, "age"), mask.filename)
+            ## stop()
+        }
     } ## end of for ( glt in c("relativeVsStanger", "relativeGriefVsRelativeNeutral", "relativeGriefVsStrangerGrief") ) {
 } ## end of if (do.baseline.to.followup.change.regressions ) {
 
@@ -305,7 +320,7 @@ if (do.baseline.only.regressions ) {
 
         ## CMIT_04 has a baseline Grief (mm.0) score of 27 which may
         ## be driving the regression results in the whole sample. So
-        ## this like is added to facilitate its removal so that the
+        ## this line is added to facilitate its removal so that the
         ## regressions can be run without this subject
         data.table=subset(data.table, ! Subj %in% c("CMIT_04"))
         
