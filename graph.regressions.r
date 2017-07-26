@@ -604,70 +604,211 @@ my_theme=
 ####################################################################################################
 
 
-change.variables=list(
+followup.variables=list(
 
+########################################
+### Grief Total
+########################################        
+    
     list(variable="delta.grief.scaled",
          name="Change in Grief (scaled)",
          y.axis.label="Change in relative vs. stanger GLT",
-         infix="relativeVsStanger.analysis.one.delta.grief.scaled"),
+         infix="relativeVsStanger.followup.analysis.one.delta.grief.scaled"),
     list(variable="delta.grief.scaled",
          name="Change in Grief (scaled)",
          y.axis.label="Change in relative vs. stanger GLT",
-         infix="relativeVsStanger.analysis.two.delta.grief.scaled.and.grief.delta.hamd"),
+         infix="relativeVsStanger.followup.analysis.two.delta.grief.scaled.and.delta.hamd.scaled"),
     list(variable="delta.grief.scaled",
          name="Change in Grief (scaled)",
          y.axis.label="Change in relative vs. stanger GLT",
-         infix="relativeVsStanger.analysis.three.delta.grief.scaled.and.age"),
+         infix="relativeVsStanger.followup.analysis.three.delta.grief.scaled.and.age"),
     
     list(variable="delta.grief.scaled",
          name="Change in Grief (scaled)",
          y.axis.label="Change in relative grief vs. relative neutral GLT",
-         infix="relativeGriefVsRelativeNeutral.analysis.one.delta.grief.scaled"),
+         infix="relativeGriefVsRelativeNeutral.followup.analysis.one.delta.grief.scaled"),
     list(variable="delta.grief.scaled",
          name="Change in Grief (scaled)",
          y.axis.label="Change in relative grief vs. relative neutral GLT",
-         infix="relativeGriefVsRelativeNeutral.analysis.two.delta.grief.scaled.and.grief.delta.hamd"),
+         infix="relativeGriefVsRelativeNeutral.followup.analysis.two.delta.grief.scaled.and.delta.hamd.scaled"),
     list(variable="delta.grief.scaled",
          name="Change in Grief (scaled)",
          y.axis.label="Change in relative grief vs. relative neutral GLT",
-         infix="relativeGriefVsRelativeNeutral.analysis.three.delta.grief.scaled.and.age"),
+         infix="relativeGriefVsRelativeNeutral.followup.analysis.three.delta.grief.scaled.and.age"),
     
     list(variable="delta.grief.scaled",
          name="Change in Grief (scaled)",
          y.axis.label="Change in relative grief vs. stanger grief GLT",
-         infix="relativeGriefVsStrangerGrief.analysis.one.delta.grief.scaled"),
+         infix="relativeGriefVsStrangerGrief.followup.analysis.one.delta.grief.scaled"),
     list(variable="delta.grief.scaled",
          name="Change in Grief (scaled)",
          y.axis.label="Change in relative grief vs. stanger grief GLT",
-         infix="relativeGriefVsStrangerGrief.analysis.two.delta.grief.scaled.and.grief.delta.hamd"),
+         infix="relativeGriefVsStrangerGrief.followup.analysis.two.delta.grief.scaled.and.delta.hamd.scaled"),
     list(variable="delta.grief.scaled",
          name="Change in Grief (scaled)",
          y.axis.label="Change in relative grief vs. stanger grief GLT",
-         infix="relativeGriefVsStrangerGrief.analysis.three.delta.grief.scaled.and.age")
+         infix="relativeGriefVsStrangerGrief.followup.analysis.three.delta.grief.scaled.and.age"),
+
+
+########################################
+### Grief A
+########################################    
+
+    list(variable="delta.grief.a.scaled",
+         name="Change in Grief A (scaled)",
+         y.axis.label="Change in relative vs. stanger GLT",
+         infix="relativeVsStanger.followup.analysis.one.delta.grief.a.scaled"),
+    list(variable="delta.grief.a.scaled",
+         name="Change in Grief A (scaled)",
+         y.axis.label="Change in relative vs. stanger GLT",
+         infix="relativeVsStanger.followup.analysis.two.delta.grief.a.scaled.and.delta.hamd.scaled"),
+    list(variable="delta.grief.a.scaled",
+         name="Change in Grief (scaled)",
+         y.axis.label="Change in relative vs. stanger GLT",
+         infix="relativeVsStanger.followup.analysis.three.delta.grief.a.scaled.and.age"),
+    
+    list(variable="delta.grief.a.scaled",
+         name="Change in Grief A (scaled)",
+         y.axis.label="Change in relative grief vs. relative neutral GLT",
+         infix="relativeGriefVsRelativeNeutral.followup.analysis.one.delta.grief.a.scaled"),
+    list(variable="delta.grief.a.scaled",
+         name="Change in Grief A (scaled)",
+         y.axis.label="Change in relative grief vs. relative neutral GLT",
+         infix="relativeGriefVsRelativeNeutral.followup.analysis.two.delta.grief.a.scaled.and.delta.hamd.scaled"),
+    list(variable="delta.grief.a.scaled",
+         name="Change in Grief A (scaled)",
+         y.axis.label="Change in relative grief vs. relative neutral GLT",
+         infix="relativeGriefVsRelativeNeutral.followup.analysis.three.delta.grief.a.scaled.and.age"),
+    
+    list(variable="delta.grief.a.scaled",
+         name="Change in Grief A (scaled)",
+         y.axis.label="Change in relative grief vs. stanger grief GLT",
+         infix="relativeGriefVsStrangerGrief.followup.analysis.one.delta.grief.a.scaled"),
+    list(variable="delta.grief.a.scaled",
+         name="Change in Grief A (scaled)",
+         y.axis.label="Change in relative grief vs. stanger grief GLT",
+         infix="relativeGriefVsStrangerGrief.followup.analysis.two.delta.grief.a.scaled.and.delta.hamd.scaled"),
+    list(variable="delta.grief.a.scaled",
+         name="Change in Grief A (scaled)",
+         y.axis.label="Change in relative grief vs. stanger grief GLT",
+         infix="relativeGriefVsStrangerGrief.followup.analysis.three.delta.grief.a.scaled.and.age"),
+
+
+########################################
+### Grief B
+########################################
+
+    list(variable="delta.grief.b.scaled",
+         name="Change in Grief B (scaled)",
+         y.axis.label="Change in relative vs. stanger GLT",
+         infix="relativeVsStanger.followup.analysis.one.delta.grief.b.scaled"),
+    list(variable="delta.grief.b.scaled",
+         name="Change in Grief B (scaled)",
+         y.axis.label="Change in relative vs. stanger GLT",
+         infix="relativeVsStanger.followup.analysis.two.delta.grief.b.scaled.and.delta.hamd.scaled"),
+    list(variable="delta.grief.b.scaled",
+         name="Change in Grief (scaled)",
+         y.axis.label="Change in relative vs. stanger GLT",
+         infix="relativeVsStanger.followup.analysis.three.delta.grief.b.scaled.and.age"),
+    
+    list(variable="delta.grief.b.scaled",
+         name="Change in Grief B (scaled)",
+         y.axis.label="Change in relative grief vs. relative neutral GLT",
+         infix="relativeGriefVsRelativeNeutral.followup.analysis.one.delta.grief.b.scaled"),
+    list(variable="delta.grief.b.scaled",
+         name="Change in Grief B (scaled)",
+         y.axis.label="Change in relative grief vs. relative neutral GLT",
+         infix="relativeGriefVsRelativeNeutral.followup.analysis.two.delta.grief.b.scaled.and.delta.hamd.scaled"),
+    list(variable="delta.grief.b.scaled",
+         name="Change in Grief B (scaled)",
+         y.axis.label="Change in relative grief vs. relative neutral GLT",
+         infix="relativeGriefVsRelativeNeutral.followup.analysis.three.delta.grief.b.scaled.and.age"),
+    
+    list(variable="delta.grief.b.scaled",
+         name="Change in Grief B (scaled)",
+         y.axis.label="Change in relative grief vs. stanger grief GLT",
+         infix="relativeGriefVsStrangerGrief.followup.analysis.one.delta.grief.b.scaled"),
+    list(variable="delta.grief.b.scaled",
+         name="Change in Grief B (scaled)",
+         y.axis.label="Change in relative grief vs. stanger grief GLT",
+         infix="relativeGriefVsStrangerGrief.followup.analysis.two.delta.grief.b.scaled.and.delta.hamd.scaled"),
+    list(variable="delta.grief.b.scaled",
+         name="Change in Grief B (scaled)",
+         y.axis.label="Change in relative grief vs. stanger grief GLT",
+         infix="relativeGriefVsStrangerGrief.followup.analysis.three.delta.grief.b.scaled.and.age"),
+
+
+
+########################################
+### Grief C
+########################################    
+
+
+    list(variable="delta.grief.c.scaled",
+         name="Change in Grief C (scaled)",
+         y.axis.label="Change in relative vs. stanger GLT",
+         infix="relativeVsStanger.followup.analysis.one.delta.grief.c.scaled"),
+    list(variable="delta.grief.c.scaled",
+         name="Change in Grief C (scaled)",
+         y.axis.label="Change in relative vs. stanger GLT",
+         infix="relativeVsStanger.followup.analysis.two.delta.grief.c.scaled.and.delta.hamd.scaled"),
+    list(variable="delta.grief.c.scaled",
+         name="Change in Grief (scaled)",
+         y.axis.label="Change in relative vs. stanger GLT",
+         infix="relativeVsStanger.followup.analysis.three.delta.grief.c.scaled.and.age"),
+    
+    list(variable="delta.grief.c.scaled",
+         name="Change in Grief C (scaled)",
+         y.axis.label="Change in relative grief vs. relative neutral GLT",
+         infix="relativeGriefVsRelativeNeutral.followup.analysis.one.delta.grief.c.scaled"),
+    list(variable="delta.grief.c.scaled",
+         name="Change in Grief C (scaled)",
+         y.axis.label="Change in relative grief vs. relative neutral GLT",
+         infix="relativeGriefVsRelativeNeutral.followup.analysis.two.delta.grief.c.scaled.and.delta.hamd.scaled"),
+    list(variable="delta.grief.c.scaled",
+         name="Change in Grief C (scaled)",
+         y.axis.label="Change in relative grief vs. relative neutral GLT",
+         infix="relativeGriefVsRelativeNeutral.followup.analysis.three.delta.grief.c.scaled.and.age"),
+    
+    list(variable="delta.grief.c.scaled",
+         name="Change in Grief C (scaled)",
+         y.axis.label="Change in relative grief vs. stanger grief GLT",
+         infix="relativeGriefVsStrangerGrief.followup.analysis.one.delta.grief.c.scaled"),
+    list(variable="delta.grief.c.scaled",
+         name="Change in Grief C (scaled)",
+         y.axis.label="Change in relative grief vs. stanger grief GLT",
+         infix="relativeGriefVsStrangerGrief.followup.analysis.two.delta.grief.c.scaled.and.delta.hamd.scaled"),
+    list(variable="delta.grief.c.scaled",
+         name="Change in Grief C (scaled)",
+         y.axis.label="Change in relative grief vs. stanger grief GLT",
+         infix="relativeGriefVsStrangerGrief.followup.analysis.three.delta.grief.c.scaled.and.age")
+    
 )
 
 group.data.dir=file.path(data.dir, "Group.data")
-group.results.dir=file.path(data.dir, "Group.results", "Grief", "regressions")
+group.results.dir=file.path(data.dir, "Group.results", "Grief", "followup.regressions")
 
-output.filename=file.path(group.results.dir, paste("rlm.change.results.output", format(Sys.time(), "%Y%m%d-%H%M%Z"), "txt", sep="."))
-cat("*** Output table is in ", output.filename, "\n")
-ff=file(output.filename, open="w", encoding="utf-8")
+## output.filename=file.path(group.results.dir, paste("rlm.change.results.output", format(Sys.time(), "%Y%m%d-%H%M%Z"), "txt", sep="."))
+## cat("*** Output table is in ", output.filename, "\n")
+## ff=file(output.filename, open="w", encoding="utf-8")
 ## sink(ff, append=FALSE)
 
-for ( regression.variable.count in 1:length(change.variables ) ) {
-
-    generateGraphs(group.data.dir, group.results.dir, parameter.list=change.variables[[regression.variable.count]], bootstrapped=FALSE)        
-
+for ( regression.variable.count in 1:length(followup.variables ) ) {
+    generateGraphs(group.data.dir, group.results.dir, parameter.list=followup.variables[[regression.variable.count]], bootstrapped=FALSE)        
 } ## end of for ( regression.variable.count in 1:length(change.variables ) ) {
 ## sink()
 
+stop("Nothing further to see here\n")
 
 ####################################################################################################
 ### Baseline regressions 
 ####################################################################################################
 
 baseline.variables = list(
-    
+
+########################################
+### Grief Total
+########################################        
     ## list(variable="grief",
     ##      name="Baseline Grief",
     ##      y.axis.label="Relative vs. stanger GLT",
@@ -891,7 +1032,7 @@ baseline.variables = list(
          y.axis.label="Relative vs. stanger GLT",
          infix="relativeVsStanger.baseline.analysis.three.iri_ec.and.age"),
     
-    list(variable="iri_ec", list(variable="iri_pt",
+    list(variable="iri_pt",
          name="Baseline IRI Perspective Taking",
          y.axis.label="Relative vs. stanger GLT",
          infix="relativeVsStanger.baseline.analysis.one.iri_pt"),
@@ -928,8 +1069,9 @@ baseline.variables = list(
     list(variable="iri_pt",
          name="Baseline IRI Perspective Taking",
          y.axis.label="Relative grief vs. stanger grief GLT",
-         infix="relativeGriefVsStrangerGrief.baseline.analysis.three.iri_pt.and.age")
-         name="Baseline IRI Empathic Concern",
+         infix="relativeGriefVsStrangerGrief.baseline.analysis.three.iri_pt.and.age"),
+    
+    list(name="Baseline IRI Empathic Concern",
          y.axis.label="Relative grief vs. relative neutral GLT",
          infix="relativeGriefVsRelativeNeutral.baseline.analysis.one.iri_ec"),
     list(variable="iri_ec",
@@ -953,21 +1095,17 @@ baseline.variables = list(
          name="Baseline IRI Empathic Concern",
          y.axis.label="Relative grief vs. stanger grief GLT",
          infix="relativeGriefVsStrangerGrief.baseline.analysis.three.iri_ec.and.age")
-    
-    
 )
 
 group.data.dir=file.path(data.dir, "Group.data")
 group.results.dir=file.path(data.dir, "Group.results", "Grief", "baseline.regressions")
 
-output.filename=file.path(group.results.dir, paste("rlm.baseline.results.output", format(Sys.time(), "%Y%m%d-%H%M%Z"), "txt", sep="."))
-cat("*** Output table is in ", output.filename, "\n")
-ff=file(output.filename, open="w", encoding="utf-8")
+## output.filename=file.path(group.results.dir, paste("rlm.baseline.results.output", format(Sys.time(), "%Y%m%d-%H%M%Z"), "txt", sep="."))
+## cat("*** Output table is in ", output.filename, "\n")
+## ff=file(output.filename, open="w", encoding="utf-8")
 ## sink(ff, append=FALSE)
 
-for ( regression.variable.count in 1:length(baseline.variables ) ) {
-
+for ( regression.variable.count in 1:length(baseline.variables) ) {
     generateGraphs(group.data.dir, group.results.dir, parameter.list=baseline.variables[[regression.variable.count]], bootstrapped=FALSE)        
-
 } ## end of for ( regression.variable.count in 1:length(change.variables ) ) {
 ## sink()
