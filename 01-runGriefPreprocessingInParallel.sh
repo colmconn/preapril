@@ -38,17 +38,14 @@ SCRIPTS_DIR=${ROOT}/scripts
 # }
 
 GETOPT_OPTIONS=$( $GETOPT \
-		      -o "fe:m:o:h:b:t:nq" \
-		      --longoptions "force,excessiveMotionThresholdFraction:,motionThreshold:,outlierThreshold:,threads:,blur:,tcat:,nonlinear,enqueue" \
+		      -o "e:m:o:h:b:t:nq" \
+		      --longoptions "excessiveMotionThresholdFraction:,motionThreshold:,outlierThreshold:,threads:,blur:,tcat:,nonlinear,enqueue" \
 		      -n ${programName} -- "$@" )
 exitStatus=$?
 if [ $exitStatus != 0 ] ; then 
     echo "Error with getopt. Terminating..." >&2 
     exit $exitStatus
 fi
-
-## 1 = force creation of zero padded files
-force=0
 
 ## enqueue the job for execution
 enqueue=0
@@ -57,8 +54,6 @@ enqueue=0
 eval set -- "$GETOPT_OPTIONS"
 while true ; do 
     case "$1" in
-	-f|--force)
-	    force=1; shift 1;;
 	-e|--excessiveMotionThresholdFraction)
 	    excessiveMotionThresholdFraction=$2; shift 2 ;;	
 	-m|--motionThreshold)
@@ -83,10 +78,6 @@ while true ; do
 	    exit 2 ;;
     esac
 done
-
-# if [[ $force -eq 1 ]] ; then
-#     info_message_ln "Forcing recreation of ZEROPADed files"
-# fi
 
 ####################################################################################################
 ## Check that appropriate values are used to initialize arguments that
