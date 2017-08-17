@@ -4,7 +4,7 @@
 
 # if ctrl-c is typed exit immediatly
 trap exit SIGHUP SIGINT SIGTERM
-
+#This script does the PPI analysis. Note a lot to change in file pathways and afniproc if repurposing
 programName=`basename $0`
 
 GETOPT=$( which getopt )

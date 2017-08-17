@@ -3,7 +3,7 @@
 for ff in griefVsNeutral relativeGriefVsRelativeNeutral relativeGriefVsStrangerGrief relativeVsStranger ; do
 ## for ff in relativeGriefVsRelativeNeutral ; do
 ## for ff in relativeVsStranger ; do    
-    ## this gg stuff would not be necessary if I could spell properly :roll:
+    ## this gg stuff would not be necessary if I could spell properly :roll:. note that this was in the afni preproc
     gg=$ff
     if [[ $ff == "relativeVsStranger" ]] ; then
 	gg="relativeVsStanger"

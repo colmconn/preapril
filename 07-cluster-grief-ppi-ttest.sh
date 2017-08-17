@@ -197,6 +197,7 @@ for seed in $seeds ; do
     gltLabel=${seedName%%_*}
 
     info_message_ln "#################################################################################################"
+#for printf command, % specifies a field, d says is an integer, 02d specifies 2 characters wide and padded with zeros
     countMsg=$( printf '%02d of %02d' $seedCount $nseeds )
     info_message_ln "Clustering PPI t-tests for $seedName from the ${gltLabel} GLT. ${countMsg}." 
     info_message_ln "#################################################################################################"

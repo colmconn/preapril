@@ -90,6 +90,7 @@ for gltLabel in $glts ; do
 	    info_message_ln  "There are ${nClusters} cluster for the ${gltLabel}"
 	    
 	    cat /dev/null > seeds/${gltLabel}_seedlist.txt
+#first term is initializer, second is guard and only executes if true, third is iterator that happens at end of for loop
 	    for (( ii=1; ii<=$nClusters; ii=ii+1 )) ; do
 		seedFilePrefix="seeds/${gltLabel}_seed_$( printf "%02d" ${ii} )"
 		3dcalc -a ${clorderFile} -expr "equals(a, $ii)" -prefix ${seedFilePrefix}

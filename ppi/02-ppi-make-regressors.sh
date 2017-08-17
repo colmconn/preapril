@@ -5,6 +5,9 @@
 # if ctrl-c is typed exit immediatly
 trap exit SIGHUP SIGINT SIGTERM
 
+#Colm got this in part from Afni website, there is no documentation in the original script.  This is attempting to reverse the convolution that happens in the brain by the hemodynamic response function
+# have a signal, assume response function and want to go back to original neural input.  if want to redeploy, only change reference to the regressors
+
 programName=`basename $0`
 
 GETOPT=$( which getopt )
@@ -56,7 +59,9 @@ fi
 
 echo "*** Computing PPI regressors for the following seeds:"
 echo $seeds
-
+#NEED TO CHANGE FOLLOWING LINE FOR REPURPOSE, MAY NEED TO CHANGE OTHER LABELS DEPENDING ON AFNI PROC SCRIPT.
+#IF REMOVED OR ADDED STEPS PRIOR TO DECONVOLVE BLOCK, pb05 line would change because probably 5th step.  THAT IS 
+#within the BLOCK step in 01-ppi-preprocess
 cd $DATA/$subject/afniGriefPreprocessed.NL
 
 if  [[ ! -f pb05.${subject}.r01.scale+tlrc.HEAD ]] ; then
@@ -79,6 +84,7 @@ if [[ ! -f ${preprocErrtsFile} ]] ; then
     error_message_ln "Can not find preprocessed errts file for ${subject}"
     exit 1
 fi
+#NEED TO CHANGE FOLLOWING LINES FOR REPURPOSE
 
 stim_files=( stimuli/{rg,rn,sg,sn}.stimtimes.txt )
 stim_labs=( rg rn sg sn )
@@ -88,7 +94,7 @@ stim_labs=( rg rn sg sn )
 ## @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ ##
 
 basis=BLOCK                          ## matches basis type in main analysis
-
+#GAM gamma model has fixed duration.  BLOCK model duration can be specified
 ## basis=GAM
 
 ## tell AFNI to STFU about obliquity warnings
@@ -114,7 +120,7 @@ for seed in $seeds ; do
 
     NT=( $( 3dnvals    ${epiFile} ) )    ## num time points per run
     info_message_ln "Number of TRs in the runs: ${NT[*]}"
-
+#Assume have TR of 2, this is oversampling it so that instead of a sample every two seconds, it will have a sample every tenth of it. attempt to get better temporal resolution
     TR=$( 3dinfo -tr ${epiFile} )        ## the TR
     info_message_ln "TR = $TR"
     TRnup=$( echo "(${TR}* 10)/1" | bc )  ## oversample rate 10 times the TR as an integer
@@ -163,6 +169,8 @@ for seed in $seeds ; do
     # This generates the impulse response function for the deconvolution
     # and recovolution steps.  It is the expected response to a ~zero
     # duration event.
+#i.e. this is generating hemodynamic response function shape.  if were to graph it, would get hemodynamic response function. 
+#3ddeconvolve generates hemodynamic response function
 
     if [[ $basis == "GAM" ]] ;  then
 

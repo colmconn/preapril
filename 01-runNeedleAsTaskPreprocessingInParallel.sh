@@ -253,18 +253,18 @@ for reg_file in hand.txt needle.txt touch.txt ; do
     ## 
     ## save the results to the a file named after
     ## the inlut regressors except that it has stimtimes in the middle
-    
+        ## whole 30 sec block
     # grep  "1$" \${reg_file}  | \\
     # 	awk 'BEGIN {OFS=":"} {print \$1,\$2}' | \\
     # 	tr '\n'  ' ' > \${reg_file%%.txt}.stimtimes.txt
 
     ## the 8 in teh awk line here is in response to a suggestion by
     ## Felipe thet we look only at thhe first 8 seconds instead of teh
-    ## whole 30 sec block
+    ##8 sec block
     grep  "1$" \${reg_file}  | \\
 	awk 'BEGIN {OFS=":"} {print \$1,8}' | \\
 	tr '\n'  ' ' > \${reg_file%%.txt}.stimtimes.8sec.txt
-    
+    ## NOTE, if create AFNI friendly regresors, just replace the names in regress_stim_times and comment above out
 done
 
 ##	     -tcat_remove_first_trs ${tcat}					\\

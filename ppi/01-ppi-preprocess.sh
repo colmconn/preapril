@@ -63,6 +63,7 @@ rm -f ${preprocessingScript}
 extraAlignmentArgs="${extraAlignmentArgs} -tlrc_NL_warp"
 blur="8"
 
+#this afni_proc should be similar to the main group analysis except for the write_3d .. commands and exclusion of censoring
 deconPrefix=ppi.pre.
 afni_proc.py										\
     -subj_id ${subject}									\

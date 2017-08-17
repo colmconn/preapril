@@ -37,20 +37,26 @@ SCRIPTS_DIR=${ROOT}/scripts
 #     fi
 # }
 
+#this is for the command line options; on mac would have to have gnu get opt installed; probably in macports, definitely in homebrew"
 GETOPT_OPTIONS=$( $GETOPT \
 		      -o "e:m:o:h:b:t:nq" \
 		      --longoptions "excessiveMotionThresholdFraction:,motionThreshold:,outlierThreshold:,threads:,blur:,tcat:,nonlinear,enqueue" \
 		      -n ${programName} -- "$@" )
+#exitStatus of getopt, getopt returns zero if had no parsing errors on command line
 exitStatus=$?
 if [ $exitStatus != 0 ] ; then 
     echo "Error with getopt. Terminating..." >&2 
     exit $exitStatus
 fi
 
-## enqueue the job for execution
+## enqueue the job for execution ; 1 means queue, zero means do not queue; on server a queing system, can queu system for jobs to run in parallel, if leave it set as zero
+## it will not, just create script.  If set to 1, will submit script to queuing system so that it will be 1.  if running multiple subjects, can tell it to submit it and
+### queue will run them in order.  1 means "make the scripts and run in parallel"
+
 enqueue=0
 
 # Note the quotes around `$GETOPT_OPTIONS': they are essential!
+# shift because command line arguments. shift command tells it to pop them off the top so that don't get processed again.  shift 2 takes off "-m .2"
 eval set -- "$GETOPT_OPTIONS"
 while true ; do 
     case "$1" in
@@ -85,11 +91,16 @@ done
 
 ## The following values are used to exclude subjects based on the
 ## number of volumes censored during analysis
+##if no argument is provided, x will equal x.  x${var} is the value of the variable. then there is a string concatenation.  so if excessiveMotion* has been defined, x will not equal x
+## x will equal "x0.2" or something like it
 if [[ "x$excessiveMotionThresholdFraction" == "x" ]] ; then
     excessiveMotionThresholdFraction=0.2
     excessiveMotionThresholdPercentage=20
     warn_message_ln "No excessiveMotionThresholdFraction threshold was provided. Defaulting to $excessiveMotionThresholdFraction => ${excessiveMotionThresholdPercentage}%"
 else
+## here's a fraction of 0.2, convert to a percentage and make sure it's a whole number because the two versions are used below, this is integer division b/c of the bc command
+## so if fraction is 0.2, then it will take" (20 + .5) / 1" and return 20, will only return the whole number component which becomes a problem later
+
     excessiveMotionThresholdPercentage=$( echo "(($excessiveMotionThresholdFraction*100)+0.5)/1" | bc ) 
 
     info_message_ln "Using ${excessiveMotionThresholdFraction} as the subject exclusion motion cutoff fraction"
@@ -135,6 +146,7 @@ fi
 #     info_message_ln "Using tcat filter value of ${tcat}"
 # fi
 
+# -eq is equals, check for equality of numbers
 if [[ $nonlinear -eq 1 ]] ; then 
     info_message_ln "Using nonlinear alignment"
     scriptExt="NL"
@@ -144,6 +156,9 @@ else
 fi
 
 ####################################################################################################
+#if number of command line arguments is greater than 1, provided subjects to be analyzed, if not, you didn't provide subjects and it goes away to find them in directory
+# now the reason for the shift commands becomes apparent because all preceding arguments will have been "gobbled up"
+# -1d = -1 means in 1 column, d means directories only
 if [[ "$#" -gt 0 ]] ; then
     subjects="$@"
 else
@@ -153,6 +168,7 @@ fi
 [[ -d run ]] || mkdir run
 
 for subject in $subjects ; do
+#these error messages.  info prepends 3 green asterics, warn prepends 3 amber asterisks, error prepends 3 red ones
     info_message_ln "#################################################################################################"
     info_message_ln "Generating script for subject $subject"
 
@@ -170,11 +186,8 @@ for subject in $subjects ; do
 	anatFile=${DATA}/$subject/MPRAGE.nii
     fi
 
-    if [[ $nonlinear -eq 1 ]] ; then 
-	outputScriptName=run/run-afniGriefPreproc-${subject}.${scriptExt}.sh
-    else
-	outputScriptName=run/run-afniGriefPreproc-${subject}.${scriptExt}.sh	
-    fi
+    outputScriptName=run/run-afniGriefPreproc-${subject}.${scriptExt}.sh	
+  
 
     ## do non-linear warping? If so add the flag to the extra
     ## alignment args variable
@@ -184,7 +197,7 @@ for subject in $subjects ; do
 
     info_message_ln "Writing script: $outputScriptName"
 
-
+#the next is a here document, will take anything between them but not include them and in this case into the outputScriptName
     cat <<EOF > $outputScriptName
 #!/bin/bash
 
@@ -240,7 +253,10 @@ for reg_file in rg.txt rn.txt sg.txt sn.txt ; do
     ## 
     ## save the results to the a file named after
     ## the inlut regressors except that it has stimtimes in the middle
-    
+    ## this is the conversion from fsl regressor files to afni regressor files, meaning that "onset duration that stimulus" becomes "onset:duration"
+    ## this grep mwith "1$" means get the one at the end of the file
+    ## tr means translate, takes two arguments, [set1 set2], will translate the first into the second
+    ## the %% means cut off from the end ".txt"
     grep  "1$" \${reg_file}  | \\
 	awk 'BEGIN {OFS=":"} {print \$1,\$2}' | \\
 	tr '\n'  ' ' > \${reg_file%%.txt}.stimtimes.txt
@@ -288,20 +304,21 @@ afni_proc.py -subj_id ${subject}										\\
 	     -regress_censor_outliers \$outlierThreshold							\\
 	     -regress_run_clustsim no										\\
 	     -regress_est_blur_errts
-
+## the next will only be true if afni proc completed correctly, then will execute the script using tcsh language
 if [[ -f \${preprocessingScript} ]] ; then 
    tcsh -xef \${preprocessingScript}
 
+## X.xmat.1D is produced by 3ddeconvolve
     cd \${outputDir}
     xmat_regress=X.xmat.1D 
 
     if [[ -f \$xmat_regress ]] ; then 
-
+##fraction censored... if have 100 volumes and 20 censored, .2 are censored.  the command reads the file and says how many are censored
         fractionOfCensoredVolumes=\$( 1d_tool.py -infile \$xmat_regress -show_tr_run_counts frac_cen )
         numberOfCensoredVolumes=\$( 1d_tool.py -infile \$xmat_regress -show_tr_run_counts trs_cen )
         totalNumberOfVolumes=\$( 1d_tool.py -infile \$xmat_regress -show_tr_run_counts trs_no_cen )
 
-        ## rounding method from http://www.alecjacobson.com/weblog/?p=256
+        ## rounding method from http://www.alecjacobson.com/weblog/?p=256, note that gt is greater than
         cutoff=\$( echo "((\$excessiveMotionThresholdFraction*\$totalNumberOfVolumes)+0.5)/1" | bc )
 	if [[ \$numberOfCensoredVolumes -gt \$cutoff ]] ; then 
 
@@ -314,12 +331,16 @@ if [[ -f \${preprocessingScript} ]] ; then
 	    echo "*** WARNING: $subject will not be analysed due to having more than \${excessiveMotionThresholdPercentage}% of their volumes censored."
 	fi
 	
-	# make an image to check alignment
+	# make an image to check alignment. this produces jpgs to help check subject alignment. says run this program and feed these three command line arguments
+        # these are the underlay, the overlay and the prefix of the output jpg
 	$SCRIPTS_DIR/snapshot_volreg.sh anat_final.${subject}+tlrc pb03.${subject}.r01.volreg+tlrc ${subject}.alignment
     else
+        # if xmatrix file doesn't exist, deconvolution could not be accomplished,touch is a command to actually create a file (above the xmatrix exists but too much motion)
+        #if file exists, updates its time stamp, if not, creates the file and sets its time stamp
 	touch 00_DO_NOT_ANALYSE_${subject}_\${excessiveMotionThresholdPercentage}percent.txt
     fi
     echo "Compressing BRIKs and nii files"
+    #next says find any files ending in BRIK or nii and compress
     find ./ \( -name "*.BRIK" -o -name "*.nii" \) -print0 | xargs -0 gzip
 else
     echo "*** No such file \${preprocessingScript}"
@@ -330,6 +351,7 @@ fi
 EOF
 
     chmod +x $outputScriptName
+## note that the following is only relevant to the server and pass to the enqueue zero if on my mac
     if [[ $enqueue -eq 1 ]] ; then
 	info_message_ln "Submitting job for execution to queuing system"
 	LOG_FILE=$DATA/$subject/$subject-grief-afniPreproc.${scriptExt}.log

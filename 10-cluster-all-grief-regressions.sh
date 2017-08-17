@@ -3,7 +3,8 @@
 trap exit SIGHUP SIGINT SIGTERM
 
 set -x
-
+#this script cycles through glt and variables of interest and certain model setups
+#note that script 10 calls script 9!!!
 do_baseline_to_followup_change_regressions=1
 do_baseline_only_regressions=0
 

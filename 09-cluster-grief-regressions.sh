@@ -5,6 +5,14 @@
 # if ctrl-c is typed exit immediatly
 trap exit SIGHUP SIGINT SIGTERM
 
+###NOTE only two instances of Grief need to be changed for repurposing!!!
+
+# this is specific for 1 glt and variable
+# note that this script is called by script 10, if any changes made specifically may invalidate script 10.
+# this corrects multiple comparisons differently from the t-tests because it's a regression.  Takes average smoothness of individual subjects
+# and provides those to 3dclustsim, then 3dclustsim runs simulations that it uses / provides data.  A bunch of command line arguments for t-test
+#clustering are not applicable here
+
 programName=`basename $0`
 
 GETOPT=$( which getopt )
@@ -248,6 +256,7 @@ if [[ ! -f $GROUP_RESULTS/blur.err_reml.1D ]] || [[ ! -s $GROUP_RESULTS/blur.err
     subjects=$( cat ${dataTableFilename} | awk '{ print $1 }' | sed 1d )
 
     ## now get the ACF values for each subject (A and B (only for non-baseline analysis) timepoints) in the analysis
+    ## ACF is the autocorrelation function, estimate of the averaged parameters across subjects. stored in last row.  that is tail -1, then saved to the 1D file then used later
     for subject in $subjects ; do
 	tail -1 $( dirname $SCRIPTS_DIR )/${subject}A/afniGriefPreprocessed.NL/blur.err_reml.1D >> $GROUP_RESULTS/blur.err_reml.1D
 	## if baseline is in the infix, then DO NOT include the B

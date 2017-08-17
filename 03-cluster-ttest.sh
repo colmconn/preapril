@@ -3,6 +3,7 @@
 ## set -x 
 
 # if ctrl-c is typed exit immediatly
+#pValue is 
 trap exit SIGHUP SIGINT SIGTERM
 
 programName=`basename $0`
@@ -26,6 +27,7 @@ fi
 
 
 # Note the quotes around `$GETOPT_OPTIONS': they are essential!
+# Need to make sure have gnu getopt installed from macports or homebrew to run on mac
 eval set -- "$GETOPT_OPTIONS"
 while true ; do 
     case "$1" in
@@ -79,16 +81,22 @@ while true ; do
     esac
 done
 
+# this gets the degrees of freedom for ttests in each voxel.  converts p-value to critical t value, which forms a threshold
+# defining local variable specific to extractTStatpars
+# this next function is not eventually used in this script / may be useful if remove the clustsim argument to 3dttest++ in the previous script
 function extractTStatpars {
     local bucket="$1"
     local subbrikId="$2"
 
+#3dAttribute gets attribute that stores the degrees of freedom, next two lines gobble up the useless text
     a=$(3dAttribute BRICK_STATSYM $bucket"[$subbrikId]" )
     b=${a##*(}
     c=${b%%)*}
 
     echo $( echo $c | tr "," " " )
 }
+# end of function not utilized
+
 
 if [ "x$NN" == "x" ] ; then 
     ## nearest neighbour 1=touching at faces, 2=faces and edges 3=faces,
@@ -208,18 +216,27 @@ for gltLabel in $glts ; do
     tTestFile=${regLabel}.${gltLabel}.ttest.all+tlrc
     echo "### T-test file is: $tTestFile"    
         
+#label2index takes a descriptive text level, give me numeric id of BRIK that matches this label // a holdover from the past mostly
+#sends this to error . information prints to standard output is good, redirect the verbose stuff we don't want to the trash
+# 2> means send standard error to the great big bit heap in the sky. convention is 0 for standard input; 1 for standard output; 2 for error output
+
     statBrikId=$( 3dinfo -label2index "${labelPrefix}_Zscr" $tTestFile 2> /dev/null )
     contrastBrikId=$( 3dinfo -label2index "${labelPrefix}_mean" $tTestFile 2> /dev/null )    
 
+#get.minimum.voxel.count: An R script to find the minimum cluster size
     nVoxels=$( $scriptsDir/get.minimum.voxel.count.r --nn $NN --alpha=$cPvalue --pthr=$pValue --side=$side -c ${csimprefix}.${regLabel}.${gltLabel}.CSim.NN${NN}_${side}sided.1D )
     if [[ "x$nVoxels" == "x" ]] ; then
 	echo "*** Couldn't get the correct number of voxels to go with pvalue=$pValue and corrected pvalue=$cPvalue"
 	echo "*** You may need to pad these values with zeros to ensure you match the correct row and column in $cstempPrefix.NN${NN}_${side}.1D"
 	exit
     fi
-    ## thsi is useful if the t test si stored as such instead of a zscore
+    ## thsi is useful if the t test is stored as such instead of a zscore
     ## df=$( extractTStatpars "$tTestFile" "${tLabelPrefix}_Tstat" )
     
+#cdf is cumulative density function; an afni program that translates a p-value into the critical statistical value at which thresholding should be done.
+# if say want to threshold at p = .05, but have z scores, need to turn p value into a z value.  only voxels with a z score of X will be retained
+#cdf produces "t = X", and we want only the number back.  s is for substitute, forward slash separates components of command, what comes after are bits you don't want
+# two forward slashes together: the first closes the text to substitute, the second one is not followed by anything to substitute so nothing to substitute and so only gets the text that follows
     threshold=$( cdf -p2t fizt $pValue | sed 's/t = //' )
     echo "### labelPrefix = $labelPrefix"
     echo "### contrastBrikId = $contrastBrikId"
@@ -232,8 +249,11 @@ for gltLabel in $glts ; do
     echo "### corrected  pValue = $cPvalue"
 
     infix=${regLabel}.${gltLabel}
-
+#these are arguments to 3dmerge, sometimes when cluster have a one voxel isthmus... erode and dilate means look for small isthmuses connecting large blobs and erode them
+#put this line back if see clusters that look bad....
     ## -1erode 50 -1dilate \
+
+#3dmerge performs the thresholding and clustering
     3dmerge -session . -prefix clorder.$infix \
 	    -2thresh -$threshold $threshold \
 	    -1clust_order $rmm $nVoxels \
@@ -241,12 +261,20 @@ for gltLabel in $glts ; do
 	    -1dindex $contrastBrikId -1tindex $statBrikId  -nozero \
 	    $tTestFile
     
+#3dclust gives the tables of centers of mass
     if [[ -f clorder.$infix+tlrc.HEAD ]] ; then 
 	3dclust -1Dformat -nosum -dxyz=1 $rmm $nVoxels clorder.$infix+tlrc.HEAD > clust.$infix.txt
 
+#next line gives new file that has non-zero voxels only in parts of brain that survive clustering. value in there is the z scores.  gives the clust. files
 	3dcalc -a clorder.${infix}+tlrc.HEAD -b ${tTestFile}\[$statBrikId\] -expr "step(a)*b" -prefix clust.$infix
 	
+#gives the nClusters in the clorder file
 	nClusters=$( 3dBrickStat -max clorder.$infix+tlrc.HEAD 2> /dev/null | tr -d ' ' )
+
+#datatable file has a subject and an inputfile in its columns.  3dttest can provide covariates in between Subj and Inputfile
+#this takes datatable, looks at first line and counts number of words.  accounting for fact that datatables could have more than 2 values (for example if have covariates)
+#head is a program that in this case will return first line, could use another (for example the first 10 rows).  translates spaces into a new line.  then greps the line number on which it finds inputFile
+#cut says take in some text, d is delimiter, -f1 says want first field without the colon
 
 	columnNumber=$( head -1 $gltDataTableFilename | tr '[[:space:]]' '\n' | grep -n InputFile | cut -f1 -d':' )
 	if [[ -z $columnNumber ]] ; then
@@ -255,7 +283,12 @@ for gltLabel in $glts ; do
 	    exit 1
 	fi
 	
+#this line says, take tail , print all but the top line, so start at the second line of datatable, use awk to print out the columnNumber and will give inputfiles for all the subjects.  
+#3droistats computes average glt within each cluster within each subject.  will have as many columns as there are clusters.  so in this case the mean
 	3dROIstats -nobriklab -mask clorder.$infix+tlrc.HEAD $( tail -n +2 $gltDataTableFilename |     awk -v cn=$columnNumber '{ print $cn }' ) > roiStats.$infix.glt.txt
+
+#this is repeating the above with the stimuli datatable, because stimuliDataTable.  this is for use in the next graphing function.  relativeVsStranger is rg rn  sg sn.  have 4 bars in graph for glt. 
+#need average data values for each one
 
 	columnNumber=$( head -1 $stimuliDataTableFilename | tr '[[:space:]]' '\n' | grep -n InputFile | cut -f1 -d':' )
 	if [[ -z $columnNumber ]] ; then
@@ -265,11 +298,15 @@ for gltLabel in $glts ; do
 	fi
 	
 	3dROIstats -nobriklab -mask clorder.$infix+tlrc.HEAD $( tail -n +2 $stimuliDataTableFilename |     awk -v cn=$columnNumber '{ print $cn }' ) > roiStats.$infix.stimuli.txt
-	
+
+#this is for the publication tables.  need volume and center of mask, average contrastValue, zScore.  all of this is put into the tables	
 	3dROIstats -nobriklab -mask clorder.$infix+tlrc.HEAD ${tTestFile}\[$contrastBrikId\]      > roiStats.$infix.averageContrastValue.txt
 	3dROIstats -nobriklab -mask clorder.$infix+tlrc.HEAD ${tTestFile}\[$statBrikId\]          > roiStats.$infix.averageZscore.txt
 
-	echo "$df" > text.$suffix.degreesOfFreedom.txt
+#this line unnecessary because no degrees of freedom with z scores
+##	echo "$df" > text.$suffix.degreesOfFreedom.txt
+
+#take clorder file and use integer colormap for loading it in so that each cluster gets a different color
 	3drefit -cmap INT_CMAP clorder.$infix+tlrc.HEAD
 	
     else
@@ -283,6 +320,9 @@ done
 cd $scriptsDir
 ##echo "*** Making cluster location tables using Maximum intensity"
 ##./cluster2Table.pl --space=mni --force -mi $GROUP_RESULTS
+
+#this command is a pearl that scripts takes the outputs from 3dclust, which has the centers of max and can read columns for center of mass and turn the three numbers into
+#labels like left frontal gyrus, occipital gyrus, etc.  gives a tailarach label.
 
 echo "*** Making cluster location tables using Center of Mass"
 ./cluster2Table.pl --space=mni --force $GROUP_RESULTS

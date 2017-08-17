@@ -2,6 +2,8 @@
 
 ## set -x
 
+##this is a classic resting state analysis
+
 ## save the command line now because it will be systematically
 ## dismantled and left empty by the command line argument processing
 ## code just below.
@@ -231,7 +233,9 @@ outlierThreshold=${outlierThreshold}
 ##	     -tcat_remove_first_trs ${tcat}					\\
 ## -tlrc_opts_at -init_xform AUTO_CENTER \\
 ## 	     -regress_censor_outliers \$outlierThreshold                 	\\
-
+##           -regress_censor_motion \$motionThreshold              		\\
+##    if were doing a resting state analysis purely would add back in above to censors
+##   -regressapply_mot_types is for the motion regressors
 afni_proc.py -subj_id ${subject}						\\
              -script \${preprocessingScript}					\\
 	     -out_dir \${outputDir}						\\
@@ -252,8 +256,6 @@ afni_proc.py -subj_id ${subject}						\\
 	     -regress_bandpass 0.01 0.1						\\
 	     -regress_apply_mot_types demean deriv				\\
 	     -regress_ROI WMe							\\
-             -regress_censor_motion \$motionThreshold              		\\
-	     -regress_censor_outliers \$outlierThreshold                 	\\
 	     -regress_run_clustsim no						\\
 	     -regress_est_blur_errts
 
